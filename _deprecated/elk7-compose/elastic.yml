@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+
+  # elasticproxy:
+  #   # TODO: LetsEncrypt
+  #   image: nginx:1.17-alpine
+  #   container_name: elasticproxy
+  #   restart: always
+  #   ports:
+  #     - "9280:9280"
+  #   volumes:
+  #     - ./configs/elastic-proxy/htpasswd:/etc/nginx/.htpasswd:ro
+  #     - ./configs/elastic-proxy/config/:/etc/nginx/conf.d/:ro
+  #   networks:
+  #     - elk
+  #   depends_on:
+  #     - elastic
+
+  elastic:
+    image: pensioner/elasticsearch:7.6.0
+    container_name: elastic
+    restart: always
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+      - ./configs/elastic:/usr/share/elasticsearch/config
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elk
+
+volumes:
+  esdata:
+    driver: local
+
+networks:
+  elk:
+    external: true

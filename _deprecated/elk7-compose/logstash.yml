@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+
+  logstash:
+    image: pensioner/logstash:7.6.0
+    container_name: logstash
+    restart: always
+    ports:
+      - "5044:5044"
+    #   - "9600:9600"
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    volumes:
+      - ./configs/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./configs/logstash/pipeline:/usr/share/logstash/pipeline/:ro
+      - ./configs/certs:/usr/share/logstash/certs:ro
+    networks:
+      - elk
+
+
+networks:
+  elk:
+    external: true

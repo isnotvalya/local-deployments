@@ -1,0 +1,17 @@
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: 5601
+
+xpack.security.enabled: true
+xpack.security.audit.enabled: true
+xpack.monitoring.ui.container.elasticsearch.enabled: true
+
+elasticsearch.hosts: ["http://elastic:9200"]
+elasticsearch.username: "kibana"
+elasticsearch.password: "qkFFD9WEZs38L6kxw8Jp"
+
+logging.json: true
+logging.timezone: UTC
+
+console.enabled: true
+status.allowAnonymous: false

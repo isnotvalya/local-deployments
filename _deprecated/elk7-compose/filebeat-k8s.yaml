@@ -1,0 +1,259 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: container
+      paths:
+        - /var/log/containers/*.log
+      processors:
+        - add_kubernetes_metadata:
+            in_cluster: true
+            host: ${NODE_NAME}
+            matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/"
+
+    # To enable hints based autodiscover, remove `filebeat.inputs` configuration and uncomment this:
+    #filebeat.autodiscover:
+    #  providers:
+    #    - type: kubernetes
+    #      host: ${NODE_NAME}
+    #      hints.enabled: true
+    #      hints.default_config:
+    #        type: container
+    #        paths:
+    #          - /var/log/containers/*${data.kubernetes.container.id}.log
+
+    processors:
+      - add_cloud_metadata:
+
+    # cloud.id: ${ELASTIC_CLOUD_ID}
+    # cloud.auth: ${ELASTIC_CLOUD_AUTH}
+
+    # output.elasticsearch:
+    #   hosts: ['${ELASTICSEARCH_HOST:127.0.0.1}:${ELASTICSEARCH_PORT:9200}']
+    #   username: ${ELASTICSEARCH_USERNAME}
+    #   password: ${ELASTICSEARCH_PASSWORD}
+
+    output.logstash:
+      hosts: ['${LOGSTASH_HOST:127.0.0.1}:${LOGSTASH_PORT:5044}']
+      ssl:
+        verification_mode: none
+        certificate_authorities: ["/etc/ca.crt"]
+        certificate: "/etc/beat.crt"
+        key: "/etc/beat.key"
+  ca.crt: |-
+    -----BEGIN CERTIFICATE-----
+    MIIDqDCCApACCQDpcCKNKcWf8TANBgkqhkiG9w0BAQsFADCBlTELMAkGA1UEBhMC
+    UlUxDzANBgNVBAgMBk1vc2NvdzEPMA0GA1UEBwwGTW9zY293MQ8wDQYDVQQRDAYx
+    MDEwMDAxEDAOBgNVBAoMB1Rlc3RPcmcxDTALBgNVBAsMBFRlc3QxEjAQBgNVBAMM
+    CWxvY2FsaG9zdDEeMBwGCSqGSIb3DQEJARYPdGVzdEBsb2NhbC5ob3N0MB4XDTE5
+    MDgwNjE0MzU0MFoXDTI5MDgwMzE0MzU0MFowgZUxCzAJBgNVBAYTAlJVMQ8wDQYD
+    VQQIDAZNb3Njb3cxDzANBgNVBAcMBk1vc2NvdzEPMA0GA1UEEQwGMTAxMDAwMRAw
+    DgYDVQQKDAdUZXN0T3JnMQ0wCwYDVQQLDARUZXN0MRIwEAYDVQQDDAlsb2NhbGhv
+    c3QxHjAcBgkqhkiG9w0BCQEWD3Rlc3RAbG9jYWwuaG9zdDCCASIwDQYJKoZIhvcN
+    AQEBBQADggEPADCCAQoCggEBANOKBHQ88ulwmW+rTWC/RKwBUCCy5te04tVfV6hx
+    B8ZqoE/krOxi2wlsVuHCTr6iIAdYPQzT/7+OnfkcPeo0WHZgGKDdciPyyRmW3k8j
+    SXUCXNPf1ZNKvwcZgH9T3/XxdcYITJ/cFnCbRdqWJNtAAKhsv7+d4NwBGRJMDK74
+    h3Uyt/YIT6pbhVtn9Xb7gIJ66U8614o3ny9iWB6Ef8aFWc74ItRyLZ05DZeMyWEZ
+    b23U6bMVmkbKzlQqIv7ljuu6wi/GushUuEeJ2SzTsSGJBSLzkWHAhTMUfp04q95c
+    QikhK2s+IeUviSA9zHuVIvm44/qn3iRY3LYQLmHqefsel3ECAwEAATANBgkqhkiG
+    9w0BAQsFAAOCAQEAkzaWyAndcRNf93cVPiDp1IQKGmz50kaA58bQvrBYaeTcCdbv
+    ri/Jx8y7e8n0iY4SKsxpbHI0ZNgcXCb3Xz4+1vzTF9Mt72M9wh/kM0oJxchl7q+Z
+    zZGPSPn21Gbi8OyRmFFM/OuNZK0/4uQ2M5Uvo2uC+cHygEEQogNo+ww6zk/UbPXi
+    cfyK7zL6QbJT7OPfDHudJtFVxLkqpOkWp+2nv/HZdshDLNrygTxZdMwFHDJtLiNS
+    mg+2EeOKQ5cJh/eU3w9//4JtQ/qJhCDij/YRBlgra0fxSR30GOqaiSbhDarDVWHd
+    RiKHpcIlrKfFrosETnlvE+zXJyxcm31NjEZdTw==
+    -----END CERTIFICATE-----
+  beat.crt: |-
+    -----BEGIN CERTIFICATE-----
+    MIID3TCCAsWgAwIBAgIJAOlwIo0pxZ/yMA0GCSqGSIb3DQEBDQUAMIGVMQswCQYD
+    VQQGEwJSVTEPMA0GA1UECAwGTW9zY293MQ8wDQYDVQQHDAZNb3Njb3cxDzANBgNV
+    BBEMBjEwMTAwMDEQMA4GA1UECgwHVGVzdE9yZzENMAsGA1UECwwEVGVzdDESMBAG
+    A1UEAwwJbG9jYWxob3N0MR4wHAYJKoZIhvcNAQkBFg90ZXN0QGxvY2FsLmhvc3Qw
+    HhcNMTkwODA2MTQzNTQzWhcNMjkwODAzMTQzNTQzWjCBlTELMAkGA1UEBhMCUlUx
+    DzANBgNVBAgMBk1vc2NvdzEPMA0GA1UEBwwGTW9zY293MQ8wDQYDVQQRDAYxMDEw
+    MDAxEDAOBgNVBAoMB1Rlc3RPcmcxDTALBgNVBAsMBFRlc3QxEjAQBgNVBAMMCWxv
+    Y2FsaG9zdDEeMBwGCSqGSIb3DQEJARYPdGVzdEBsb2NhbC5ob3N0MIIBIjANBgkq
+    hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArrZ/EsA+/NJPPD18HrTAeHMCYXeR1yhf
+    hVdl+3dN+IEg9FlMrt4FtbiBG8ChlpewSAL0kIN4gP00tX1sVo9WvxJRFtjkzPLz
+    UVgQWWzGu7EzZvlU3GA6SCiOs26Hin7aRV9v5kj1DwqV4T1FSw/jshkPK1/t+1H7
+    H9z9VVYlb7qoFzzseLXvABIGXmDQC7enIZGqZrPmKDgLcGkrIN10nvnoH9bqL7cn
+    NZQnfUHbbUCzFPqk0PLuSiftXzSMTWoj3OxJ0WjXbP9Xwsry46bdqC1PpcJztKHJ
+    XW2/rhqoE7lb9XE5DbI5/C/WSiZ/3F9UBsDZoybJBcUnCbogCiCRYwIDAQABoy4w
+    LDALBgNVHQ8EBAMCBDAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMA0G
+    CSqGSIb3DQEBDQUAA4IBAQC2/ShWQ09TG3/JmqUjVXFQNNoBti6Byqm+WR7mPaCn
+    PA8JtWcQrnOz0aGtV3DmfyKZQGqqbWZx44p6d2cCySwvkYkPqmS6CKFbUlX7x1O8
+    1hpnKmD2fXtY9RR8DQN84YTFKdbjqqREIsApskgtNh8zL7YK1QwVimN1frg3Hm19
+    Ou0MERo1bvnKOvMTunmrKkWgaBs898bVmeYS9dVXCqLlgJyYXYeu7Xo5fqcvMLLM
+    YnBW7ZxezZChhFg8ly0Ao0BeHE6nQpAQYzD5LTSRaer8s9sO87mx2KnsDvp2Mrxg
+    jGswAYWI9j0yDpq2SEhmNFJLt27Wb7zACJ+6Lr5qH0eo
+    -----END CERTIFICATE-----
+  beat.key: |-
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEogIBAAKCAQEArrZ/EsA+/NJPPD18HrTAeHMCYXeR1yhfhVdl+3dN+IEg9FlM
+    rt4FtbiBG8ChlpewSAL0kIN4gP00tX1sVo9WvxJRFtjkzPLzUVgQWWzGu7EzZvlU
+    3GA6SCiOs26Hin7aRV9v5kj1DwqV4T1FSw/jshkPK1/t+1H7H9z9VVYlb7qoFzzs
+    eLXvABIGXmDQC7enIZGqZrPmKDgLcGkrIN10nvnoH9bqL7cnNZQnfUHbbUCzFPqk
+    0PLuSiftXzSMTWoj3OxJ0WjXbP9Xwsry46bdqC1PpcJztKHJXW2/rhqoE7lb9XE5
+    DbI5/C/WSiZ/3F9UBsDZoybJBcUnCbogCiCRYwIDAQABAoIBAH6Hrrn+vt9M1JOV
+    F9oJH8dby6KY/Ocs1xjztekLe014/0vXjICsTMhRqjdWJ/CvRLyyXzp17ITGXDEA
+    d8CsqK9SbaW1SObhILSNqbGJ5Nezur1d30aG7k6qCMcMSl9UBXHub1UBC3FsQiXQ
+    wOlexZGLMoBARlMYCV4HJvVxoUUrX+Ljz46OeIwa+QxNoeceQSRbrtbb3929Gr6x
+    mLCHu6v/6axjwVBzdCcIjFubwUwSg6hG95xQTP3rGkQF9c1r4lshMHAeIR61hg+B
+    RVFU5U2i16NOg6JFs9K9b5n+b1mq9mf/o06rW8qpSycr8SshF/BELRKnPN57XifN
+    pHg7W2ECgYEA2wR1Mf/CZfXDUuz1VUC4ygOmmS+UHuSBpbjx7btLrrekzS3NSjDE
+    MM/GaD/oHLpsIKa0/g0fmG3+MHtXu3AsUJwN1PGe1+9o8eV8idhJGPoK3e+mqigf
+    tMuoFN/bD5wtl83265Mq9jOhG2sZqWDWuChKllyGkC1kT+0TYDX7NnMCgYEAzDbe
+    839wk4nkWmA0d+zDtx14tD883jHyJVa+m1v6KUGvI2PsOGM+5vVWHlyVsNOzT4da
+    zPYgnqV/ZNDrM6W3Ho9Px60cx2LtsL1EHWDw8St2EPV02RVzpBZbqdlBuAT4ycZO
+    GC06YB3FkYa5CjO+De63xybz2SFtzwJ7etP9jVECgYB50Yzt9nfGBmBR64K5nHor
+    wsQTSCd211pVNv05YYfC8loz1Vnt/hnhnG+a5JDSCc7Cinb5J4t/WQ6dIL23f7jm
+    TSZUXuAe8wbIJQCUGzztK4aH0xg8ZHzeLriag7hwgknJucGxXfXzYtwlR/jKARbs
+    71wtLeGap+S3oAG67cuAiQKBgBnZuE9Kio2inu1x0DJ+HihH6semWaYm3GgtmuM/
+    uWMPlYP9WiGpLoU9+TDOt4QyyDgBAlV/spFikcXJTHy1NYEA0zCLkWEL/Nqqmry9
+    UMK2pbNv3uK7/G+BBQlzHwaUWonwOGKHFySjoCbTzwijlCNfXJQxMh0CRkw2HDto
+    KmiBAoGABre/MBGVIp0FWbpqX/BmklbA9HogRNloD1NYxBAdgNw6xnFWzxfRFMq7
+    Px5zGPPggx5jC1JJ077I87EjL+Dg+lQmyzptlpXyrNcRSbGUa880x93V1NnJKEcA
+    AW22Z4PIqOGnpcWJhAbqZzE6p7gQlayTfUAa2ieRFMrwB/FRvGM=
+    -----END RSA PRIVATE KEY-----
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: filebeat
+    spec:
+      serviceAccountName: filebeat
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: filebeat
+        image: pensioner/filebeat:7.6.0
+        args: [
+          "-c", "/etc/filebeat.yml",
+          "-e",
+        ]
+        env:
+        - name: LOGSTASH_HOST
+          value: 89.208.211.205
+        - name: LOGSTASH_PORT
+          value: "5044"
+        # - name: ELASTICSEARCH_HOST
+        #   value: 165.22.59.248
+        # - name: ELASTICSEARCH_PORT
+        #   value: "9200"
+        # - name: ELASTICSEARCH_USERNAME
+        #   value: elastic
+        # - name: ELASTICSEARCH_PASSWORD
+        #   value: MZXlAhXosuYYgtzq0gfr
+        # - name: ELASTIC_CLOUD_ID
+        #   value:
+        # - name: ELASTIC_CLOUD_AUTH
+        #   value:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        securityContext:
+          runAsUser: 0
+          # If using Red Hat OpenShift uncomment this:
+          #privileged: true
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/filebeat.yml
+          readOnly: true
+          subPath: filebeat.yml
+        - name: config
+          mountPath: /etc/ca.crt
+          subPath: ca.crt
+          readOnly: true
+        - name: config
+          mountPath: /etc/beat.crt
+          subPath: beat.crt
+          readOnly: true
+        - name: config
+          mountPath: /etc/beat.key
+          subPath: beat.key
+          readOnly: true
+        - name: data
+          mountPath: /usr/share/filebeat/data
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          defaultMode: 0600
+          name: filebeat-config
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: varlog
+        hostPath:
+          path: /var/log
+      # data folder stores a registry of read status for all files, so we don't send everything again on a Filebeat pod restart
+      - name: data
+        hostPath:
+          path: /var/lib/filebeat-data
+          type: DirectoryOrCreate
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: filebeat
+subjects:
+- kind: ServiceAccount
+  name: filebeat
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: filebeat
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: filebeat
+  labels:
+    k8s-app: filebeat
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - get
+  - watch
+  - list
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: filebeat
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+---

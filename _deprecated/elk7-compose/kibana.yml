@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  kibanaproxy:
+    # TODO: https
+    image: nginx:1.17-alpine
+    container_name: kibanaproxy
+    restart: always
+    ports:
+      - "5680:5680"
+    volumes:
+      - ./configs/kibana-proxy/htpasswd:/etc/nginx/.htpasswd:ro
+      - ./configs/kibana-proxy/config/:/etc/nginx/conf.d/:ro
+    networks:
+      - elk
+    depends_on:
+      - kibana
+
+  kibana:
+    image: pensioner/kibana:7.6.0
+    container_name: kibana
+    restart: always
+    # ports:
+    #   - 5601:5601
+    volumes:
+      - ./test:/tmp/certs:ro
+      - ./configs/kibana/config.yml:/usr/share/kibana/config/kibana.yml:ro
+    networks:
+      - elk
+
+networks:
+  elk:
+    external: true
