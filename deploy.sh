@@ -63,13 +63,21 @@ pg_deploy() {
 }
 
 pg_deploy_rs() {
-  local db=$PG_DATABASE
+  local ns=${NAMESPACE_DB}
+  local db=${PG_DATABASE}
+  local ingress_host=${PGADMIN_INGRESS_HOST}
 
-  _helm_install -f $PG_HELM_VALUES_FILE --name $PG_SERVICE_NAME \
+  _helm_install_db --name $PG_SERVICE_NAME -f $PG_HELM_VALUES_FILE \
     --set postgresqlDatabase=$db \
     --set replication.enabled=true \
     --set replication.slaveReplicas=2 stable/postgresql
-  _helm_install -f $PGADMIN_HELM_VALUES_FILE --name $PGADMIN_SERVICE_NAME stable/pgadmin
+
+  # TODO: set ingress hostname
+  echo "TODO: --set ingress.hosts[0].host=$ingress_host"
+  echo "TODO: --set serverDefinitions.servers"
+
+  _helm_install_db --name $PGADMIN_SERVICE_NAME -f $PGADMIN_HELM_VALUES_FILE \
+    stable/pgadmin
 }
 
 pg_drop_deploy() {
