@@ -1,0 +1,31 @@
+service:
+  type: LoadBalancer
+
+env:
+  email: admin@example.com
+  password: p@ssword
+
+persistentVolume:
+  enabled: true
+  size: 1Gi
+
+ingress:
+  enabled: true
+  hosts:
+    - host: pgadmin.example.com
+      paths:
+        - /
+
+# https://www.postgresql.org/docs/12/libpq-ssl.html
+serverDefinitions:
+  enabled: true
+  servers: |-
+    "testmydb": {
+      "Name": "testmydb",
+      "Group": "Servers",
+      "Port": 5432,
+      "MaintenanceDB": "testmydb",
+      "Host": "postgres-postgresql",
+      "Username": "postgres",
+      "SSLMode": "disable"
+    }
