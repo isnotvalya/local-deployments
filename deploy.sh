@@ -27,6 +27,11 @@ MONGO_SERVICE_NAME=$MONGO_NAME
 MONGO_FORWARD_PORT="27017:27017"
 MONGO_HELM_VALUES_FILE=mongo/values.yaml
 
+# Redis
+REDIS_NAME=redis
+REDIS_SERVICE_NAME=$REDIS_NAME
+REDIS_HELM_VALUES_FILE=redis/values.yaml
+
 #
 _kubectl() {
   kubectl $* || exit 1
@@ -137,6 +142,18 @@ mongo_forward() {
   kubectl --namespace $ns port-forward svc/${MONGO_SERVICE_NAME} ${MONGO_FORWARD_PORT}
 }
 
+#
+redis_deploy() {
+  local ns=${NAMESPACE_DB}
+
+  _helm_install_db --name $REDIS_NAME -f $REDIS_HELM_VALUES_FILE stable/redis
+}
+
+redis_drop_deploy() {
+  _helm delete --purge $REDIS_NAME
+}
+
+
 case "$1" in
   ns-create) k8s_create_namespaces ;;
   ns-delete) k8s_drop_namespaces ;;
@@ -149,6 +166,8 @@ case "$1" in
   mongo-deploy) mongo_deploy ;;
   mongo-drop) mongo_drop_deploy ;;
   mongo-forward) mongo_forward ;;
+  redis-deploy) redis_deploy ;;
+  redis-drop) redis_drop_deploy ;;
   *)
     NS=$NAMESPACE
     NSDB=$NAMESPACE_DB
@@ -169,6 +188,10 @@ case "$1" in
     echo "  mongo-deploy   - deploy MongoDB (namespace '$NSDB')"
     echo "  mongo-drop     - drop MongoDB (namespace '$NSDB')"
     echo "  mongo-forward  - forwarding port $MONGO_FORWARD_PORT (namespace '$NSDB')"
+    echo
+    echo "Redis"
+    echo "  redis-deploy   - deploy Redis (namespace '$NSDB')"
+    echo "  redis-drop     - drop Redis (namespace '$NSDB')"
     echo
     exit 1
   ;;
