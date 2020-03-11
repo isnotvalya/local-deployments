@@ -9,9 +9,11 @@ NAMESPACE_DB=${NAMESPACE}-dbs
 ### Databases
 
 # PostgreSQL
+# TODO: PG_SERVICE_NAME -> PG_NAME
 PG_SERVICE_NAME=postgres
 PG_DATABASE=testmydb
 PG_HELM_VALUES_FILE=postgres/psql.yaml
+# TODO: PG_SVC_NAME -> PG_SERVICE_NAME
 PG_SVC_NAME=${PG_SERVICE_NAME}-postgresql
 
 # PostgreSQL web UI
@@ -19,6 +21,13 @@ PGADMIN_SERVICE_NAME=pgadmin
 PGADMIN_HELM_VALUES_FILE=postgres/pgadmin.yaml
 PGADMIN_INGRESS_HOST=pgadmin.example.com
 
+# MongoDB
+MONGO_NAME=mongodb
+MONGO_SERVICE_NAME=$MONGO_NAME
+MONGO_FORWARD_PORT="27017:27017"
+MONGO_HELM_VALUES_FILE=mongo/values.yaml
+
+#
 _kubectl() {
   kubectl $* || exit 1
 }
@@ -29,16 +38,18 @@ _helm() {
   helm $*
 }
 _helm_install() {
+  kubectl create namespace $NAMESPACE
   _helm install --namespace $NAMESPACE $*
 }
 _helm_install_db() {
+  kubectl create namespace $NAMESPACE_DB
   _helm install --namespace $NAMESPACE_DB $*
 }
 
-k8s_create_namespaces() {
-  _kubectl create namespace $NAMESPACE
-  _kubectl create namespace $NAMESPACE_DB
-}
+# k8s_create_namespaces() {
+#   _kubectl create namespace $NAMESPACE
+#   _kubectl create namespace $NAMESPACE_DB
+# }
 k8s_drop_namespaces() {
   _kubectl delete namespace $NAMESPACE
   _kubectl delete namespace $NAMESPACE_DB
@@ -63,7 +74,6 @@ pg_deploy() {
 }
 
 pg_deploy_rs() {
-  local ns=${NAMESPACE_DB}
   local db=${PG_DATABASE}
   local ingress_host=${PGADMIN_INGRESS_HOST}
 
@@ -110,6 +120,23 @@ pg_open_browser() {
   open http://$url
 }
 
+#
+mongo_deploy() {
+  local ns=${NAMESPACE_DB}
+
+  _helm_install_db --name $MONGO_NAME -f $MONGO_HELM_VALUES_FILE stable/mongodb
+}
+
+mongo_drop_deploy() {
+  _helm delete --purge $MONGO_NAME
+}
+
+mongo_forward() {
+  local ns=${NAMESPACE_DB}
+
+  kubectl --namespace $ns port-forward svc/${MONGO_SERVICE_NAME} ${MONGO_FORWARD_PORT}
+}
+
 case "$1" in
   ns-create) k8s_create_namespaces ;;
   ns-delete) k8s_drop_namespaces ;;
@@ -119,6 +146,9 @@ case "$1" in
   pg-open) pg_open_browser ;;
   pg-forward) pg_forward_port ;;
   pg-print-password) pg_print_password ;;
+  mongo-deploy) mongo_deploy ;;
+  mongo-drop) mongo_drop_deploy ;;
+  mongo-forward) mongo_forward ;;
   *)
     NS=$NAMESPACE
     NSDB=$NAMESPACE_DB
@@ -127,13 +157,18 @@ case "$1" in
     echo "  ns-create   - create namespace '$NS', '$NSDB'"
     echo "  ns-delete   - delete namespace '$NS', '$NSDB"
     echo
-    echo "PostgreSQL:"
+    echo "PostgreSQL"
     echo "  pg-up       - deploy PostgreSQL and PgAdmin in namespace '$NSDB'"
     echo "  pg-rs-up    - deploy PostgreSQL (with ReplicaSet) and PgAdmin in namespace '$NSDB'"
     echo "  pg-drop     - drop PostgreSQL and PgAdmin"
     echo "  pg-open     - open browser with PgAdmin"
     echo "  pg-forward  - postgres forward port"
     echo "  pg-print-password  - print postgres password"
+    echo
+    echo "MongoDB"
+    echo "  mongo-deploy   - deploy MongoDB (namespace '$NSDB')"
+    echo "  mongo-drop     - drop MongoDB (namespace '$NSDB')"
+    echo "  mongo-forward  - forwarding port $MONGO_FORWARD_PORT (namespace '$NSDB')"
     echo
     exit 1
   ;;
