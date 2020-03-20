@@ -1,0 +1,6 @@
+
+rootUser:
+  password: dieLetu6
+
+db:
+  user: testdb

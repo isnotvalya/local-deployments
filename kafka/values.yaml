@@ -1,0 +1,147 @@
+## Init containers parameters:
+## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
+##
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: buster
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+  resources: {}
+
+replicaCount: 1
+
+config: |-
+#  broker.id=-1
+#  listeners=PLAINTEXT://:9092
+#  advertised.listeners=PLAINTEXT://KAFKA_IP:9092
+#  num.network.threads=3
+#  num.io.threads=8
+#  socket.send.buffer.bytes=102400
+#  socket.receive.buffer.bytes=102400
+#  socket.request.max.bytes=104857600
+#  log.dirs=/bitnami/kafka/data
+#  num.partitions=1
+#  num.recovery.threads.per.data.dir=1
+#  offsets.topic.replication.factor=1
+#  transaction.state.log.replication.factor=1
+#  transaction.state.log.min.isr=1
+#  log.flush.interval.messages=10000
+#  log.flush.interval.ms=1000
+#  log.retention.hours=168
+#  log.retention.bytes=1073741824
+#  log.segment.bytes=1073741824
+#  log.retention.check.interval.ms=300000
+#  zookeeper.connect=ZOOKEEPER_SERVICE_NAME
+#  zookeeper.connection.timeout.ms=6000
+#  group.initial.rebalance.delay.ms=0
+
+## Kafka docker image available customizations
+## https://github.com/bitnami/bitnami-docker-kafka#configuration
+##
+## Allow to use the PLAINTEXT listener.
+allowPlaintextListener: true
+
+## The address the socket server listens on.
+# listeners:
+
+## Hostname and port the broker will advertise to producers and consumers.
+# advertisedListeners:
+
+## The protocol->listener mapping
+# listenerSecurityProtocolMap:
+
+## The listener that the brokers should communicate on
+# interBrokerListenerName:
+
+## ID of the Kafka node.
+brokerId: -1
+
+## Switch to enable topic deletion or not.
+deleteTopicEnable: false
+
+## Kafka's Java Heap size.
+heapOpts: -Xmx1024m -Xms1024m
+
+## A comma separated list of directories under which to store log files.
+logsDirs: /bitnami/kafka/data
+
+## Authentication parameteres
+## https://github.com/bitnami/bitnami-docker-kafka#security
+##
+auth:
+  ## Switch to enable the kafka authentication.
+  enabled: false
+
+  ## Enable SSL to be used with brokers and consumers
+  # ssl: false
+
+  ## Name of the existing secret containing credentials for brokerUser, interBrokerUser and zookeeperUser.
+  # existingSecret:
+
+  ## Name of the existing secret containing the certificate files that will be used by Kafka.
+  # certificatesSecret:
+
+  ## Password for the above certificates if they are password protected.
+  # certificatesPassword:
+
+  ## Kafka client user.
+  brokerUser: user
+
+  ## Kafka client password.
+  # brokerPassword:
+
+  ## Kafka inter broker communication user.
+  interBrokerUser: admin
+
+  ## Kafka inter broker communication password.
+  # interBrokerPassword:
+
+  ## Kafka Zookeeper user.
+  # zookeeperUser:
+
+  ## Kafka Zookeeper password.
+  # zookeeperPassword:
+
+# Cluster domain
+clusterDomain: cluster.local
+
+
+## Kafka data Persistent Volume Storage Class
+## If defined, storageClassName: <storageClass>
+## If set to "-", storageClassName: "", which disables dynamic provisioning
+## If undefined (the default) or set to null, no storageClassName spec is
+##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+##   GKE, AWS & OpenStack)
+##
+persistence:
+  enabled: true
+  ## A manually managed Persistent Volume and Claim
+  ## If defined, PVC must be created manually before volume will be bound
+  ## The value is evaluated as a template, so, for example, the name can depend on .Release or .Chart
+  ##
+  # existingClaim:
+
+  # storageClass: "-"
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources: {}
+#  limits:
+#    cpu: 200m
+#    memory: 1Gi
+#  requests:
+#    memory: 256Mi
+#    cpu: 250m
