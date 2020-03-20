@@ -41,6 +41,7 @@ REDIS_HELM_VALUES_FILE=redis/values.yaml
 # Kafka
 KAFKA_NAME=kafka
 KAFKA_SERVICE_NAME=$KAFKA_NAME
+KAFKA_FORWARD_PORT="9092:9092"
 KAFKA_HELM_VALUES_FILE=kafka/values.yaml
 
 KAFDROP_NAME=kafdrop
@@ -179,6 +180,12 @@ kafka_drop() {
   _helm delete --purge $KAFKA_NAME
 }
 
+kafka_forward() {
+  local ns=${NAMESPACE_DB}
+
+  kubectl --namespace $ns port-forward svc/${KAFKA_SERVICE_NAME} ${KAFKA_FORWARD_PORT}
+}
+
 kafdrop_deploy() {
   # local ns=${NAMESPACE_DB}
 
@@ -236,6 +243,7 @@ case "$1" in
   redis-drop) redis_drop_deploy ;;
   kafka-deploy) kafka_deploy ;;
   kafka-drop) kafka_drop ;;
+  kafka-forward) kafka_forward ;;
   kafdrop-deploy) kafdrop_deploy ;;
   kafdrop-drop) kafdrop_drop ;;
   kafdrop-forward) kafdrop_forward ;;
@@ -276,6 +284,7 @@ case "$1" in
     echo "Kafka"
     echo "  kafka-deploy     - deploy Kafka (namespace '$NSDB')"
     echo "  kafka-drop       - drop Kafka (namespace '$NSDB')"
+    echo "  kafka-forward    - forwarding port $KAFKA_FORWARD_PORT (namespace '$NSDB')"
     echo "  kafdrop-deploy   - deploy Kafka UI (namespace '$NSDB')"
     echo "  kafdrop-drop     - drop Kafka UI (namespace '$NSDB')"
     echo "  kafdrop-forward  - forwarding port $KAFDROP_SERVICE_NAME (namespace '$NSDB')"
