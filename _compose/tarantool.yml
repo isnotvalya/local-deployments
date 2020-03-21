@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  db:
+    # https://hub.docker.com/r/tarantool/tarantool/
+    image: tarantool/tarantool:2.3
+    hostname: tarantool
+    ports:
+      - "${TARANTOOL_PORT}:${TARANTOOL_PORT}"
+    volumes:
+      - tarantool_data:/var/lib/tarantool
+    environment:
+      - TARANTOOL_USER_NAME=${TARANTOOL_USER_NAME}
+      - TARANTOOL_USER_PASSWORD=${TARANTOOL_USER_PASSWORD}
+
+volumes:
+  tarantool_data:
+    driver: local

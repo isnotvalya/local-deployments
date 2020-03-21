@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  db:
+    # https://hub.docker.com/_/mongo
+    image: mongo:4.2-bionic
+    restart: always
+    hostname: mongo
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+
+  web:
+    image: mrvautin/adminmongo
+    hostname: adminmongo
+    restart: always
+    ports:
+      - ${MONGO_WEBUI_PORT}:${MONGO_WEBUI_PORT}
+    environment:
+      - HOST=0.0.0.0
+      - PORT=${MONGO_WEBUI_PORT}
+    depends_on:
+      - db
+
+volumes:
+  mongo_data:
+    driver: local

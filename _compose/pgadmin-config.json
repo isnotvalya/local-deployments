@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "docker": {
+      "Name": "docker",
+      "Group": "Servers",
+      "Port": 5432,
+      "Host": "db",
+      "MaintenanceDB": "test",
+      "Username": "test",
+      "SSLMode": "disable",
+      "Timeout": 60
+    }
+  }
+}

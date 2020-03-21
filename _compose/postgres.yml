@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  db:
+    # https://hub.docker.com/_/postgres
+    image: postgres:12-alpine
+    hostname: postgres
+    restart: always
+    ports:
+      - "${PG_PORT}:${PG_PORT}"
+    environment:
+      - POSTGRES_DB=${PG_DB}
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  web:
+    image: dpage/pgadmin4:4
+    hostname: pgadmin
+    restart: always
+    ports:
+      - ${PG_WEB_PORT}:${PG_WEB_PORT}
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user@example.com
+      - PGADMIN_DEFAULT_PASSWORD=Jaec1ii7
+      - PGADMIN_LISTEN_PORT=${PG_WEB_PORT}
+      - PGADMIN_SERVER_JSON_FILE=/tmp/servers.json
+      - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=True
+    volumes:
+      - ./pgadmin-config.json:/tmp/servers.json:ro
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+    driver: local
